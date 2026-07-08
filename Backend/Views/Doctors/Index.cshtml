@@ -1,0 +1,107 @@
+@model IEnumerable<ClinicManagementSystem.Models.Doctor>
+@{
+    ViewData["Title"] = "Doctors";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1 fw-bold">
+            <i class="bi bi-person-badge me-2 text-primary"></i>Doctors
+        </h4>
+        <p class="text-muted mb-0 small">@Model.Count() doctors on staff</p>
+    </div>
+    @if (User.IsInRole("Receptionist"))
+    {
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-2"></i>Add Doctor
+        </a>
+    }
+</div>
+
+<div class="row g-3">
+    @foreach (var d in Model)
+    {
+        <div class="col-md-6 col-xl-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center
+                                    justify-content-center text-primary fw-bold"
+                             style="width:48px;height:48px;font-size:1.1rem;flex-shrink:0">
+                            <i class="bi bi-person-badge"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <h6 class="fw-bold mb-0">@d.FullName</h6>
+                                @if (d.IsAvailable)
+                                {
+                                    <span class="status-badge badge-completed">Available</span>
+                                }
+                                else
+                                {
+                                    <span class="status-badge badge-cancelled">Unavailable</span>
+                                }
+                            </div>
+                            <div class="text-muted small mt-1">
+                                <i class="bi bi-award me-1"></i>@d.Specialization
+                            </div>
+                            <div class="text-muted small mt-1">
+                                <i class="bi bi-telephone me-1"></i>@d.Phone
+                            </div>
+                            @if (!string.IsNullOrEmpty(d.Email))
+                            {
+                                <div class="text-muted small mt-1">
+                                    <i class="bi bi-envelope me-1"></i>@d.Email
+                                </div>
+                            }
+                            <div class="mt-1 small">
+                                @if (d.ApplicationUser != null)
+                                {
+                                    <span class="badge bg-success bg-opacity-10 text-success">
+                                        <i class="bi bi-person-check me-1"></i>Has Login Account
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary">
+                                        <i class="bi bi-person-dash me-1"></i>No Login Account
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @if (User.IsInRole("Receptionist"))
+                {
+                    <div class="card-footer bg-transparent border-top d-flex gap-2">
+                        <a asp-action="Edit" asp-route-id="@d.Id"
+                           class="btn btn-sm btn-outline-secondary flex-grow-1">
+                            <i class="bi bi-pencil me-1"></i>Edit
+                        </a>
+                        <form asp-action="ToggleAvailability" asp-route-id="@d.Id"
+                              method="post" class="flex-grow-1">
+                            @Html.AntiForgeryToken()
+                            <button type="submit"
+                                    class="btn btn-sm w-100 @(d.IsAvailable ? "btn-outline-warning" : "btn-outline-success")">
+                                <i class="bi bi-toggle-@(d.IsAvailable ? "on" : "off") me-1"></i>
+                                @(d.IsAvailable ? "Set Unavailable" : "Set Available")
+                            </button>
+                        </form>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="col-12">
+            <div class="card">
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-person-badge fs-1 d-block mb-2"></i>
+                    No doctors added yet.
+                </div>
+            </div>
+        </div>
+    }
+</div>

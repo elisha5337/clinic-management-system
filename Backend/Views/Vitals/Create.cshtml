@@ -1,0 +1,143 @@
+@model ClinicManagementSystem.ViewModels.Vitals.VitalsFormViewModel
+@{
+    ViewData["Title"] = "Record Vitals";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1 fw-bold">
+            <i class="bi bi-heart-pulse me-2 text-danger"></i>Record Vitals
+        </h4>
+        <p class="text-muted mb-0 small">Pre-examination vitals for this appointment</p>
+    </div>
+    <a asp-controller="Appointments" asp-action="Details"
+       asp-route-id="@Model.AppointmentId" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Back to Appointment
+    </a>
+</div>
+
+<!-- Appointment context banner -->
+<div class="alert alert-info d-flex gap-3 align-items-center mb-4 border-0"
+     style="background:#e8f4fd;">
+    <i class="bi bi-calendar-event fs-4 text-primary"></i>
+    <div>
+        <div class="fw-semibold">@Model.PatientName</div>
+        <small class="text-muted">
+            @Model.AppointmentDate.ToString("MMMM dd, yyyy — hh:mm tt") &bull;
+            Dr. @Model.DoctorName
+        </small>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="AppointmentId" />
+            <input type="hidden" asp-for="PatientName" />
+            <input type="hidden" asp-for="DoctorName" />
+            <input type="hidden" asp-for="AppointmentDate" />
+
+            <div asp-validation-summary="All" class="alert alert-danger py-2 small"
+                 style="display:@(ViewContext.ModelState.IsValid ? "none" : "block")"></div>
+
+            <div class="row g-3">
+                <!-- Blood Pressure -->
+                <div class="col-md-4">
+                    <label asp-for="BloodPressure" class="form-label fw-medium"></label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light">
+                            <i class="bi bi-activity text-danger"></i>
+                        </span>
+                        <input asp-for="BloodPressure" class="form-control"
+                               placeholder="e.g. 120/80" />
+                    </div>
+                    <span asp-validation-for="BloodPressure" class="text-danger small"></span>
+                </div>
+
+                <!-- Heart Rate -->
+                <div class="col-md-4">
+                    <label asp-for="HeartRate" class="form-label fw-medium"></label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light">
+                            <i class="bi bi-heart text-danger"></i>
+                        </span>
+                        <input asp-for="HeartRate" type="number" class="form-control"
+                               placeholder="e.g. 72" min="30" max="250" />
+                        <span class="input-group-text bg-light text-muted">bpm</span>
+                    </div>
+                    <span asp-validation-for="HeartRate" class="text-danger small"></span>
+                </div>
+
+                <!-- Temperature -->
+                <div class="col-md-4">
+                    <label asp-for="Temperature" class="form-label fw-medium"></label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light">
+                            <i class="bi bi-thermometer-half text-danger"></i>
+                        </span>
+                        <input asp-for="Temperature" type="number" step="0.1" class="form-control"
+                               placeholder="e.g. 36.6" min="30" max="45" />
+                        <span class="input-group-text bg-light text-muted">°C</span>
+                    </div>
+                    <span asp-validation-for="Temperature" class="text-danger small"></span>
+                </div>
+
+                <!-- Weight -->
+                <div class="col-md-4">
+                    <label asp-for="Weight" class="form-label fw-medium"></label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light">
+                            <i class="bi bi-person text-primary"></i>
+                        </span>
+                        <input asp-for="Weight" type="number" step="0.1" class="form-control"
+                               placeholder="e.g. 70.5" min="1" max="500" />
+                        <span class="input-group-text bg-light text-muted">kg</span>
+                    </div>
+                    <span asp-validation-for="Weight" class="text-danger small"></span>
+                </div>
+
+                <!-- Height -->
+                <div class="col-md-4">
+                    <label asp-for="Height" class="form-label fw-medium"></label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light">
+                            <i class="bi bi-arrows-vertical text-primary"></i>
+                        </span>
+                        <input asp-for="Height" type="number" step="0.1" class="form-control"
+                               placeholder="e.g. 175" min="30" max="250" />
+                        <span class="input-group-text bg-light text-muted">cm</span>
+                    </div>
+                    <span asp-validation-for="Height" class="text-danger small"></span>
+                </div>
+
+                <!-- Notes -->
+                <div class="col-md-6">
+                    <label asp-for="Notes" class="form-label fw-medium"></label>
+                    <textarea asp-for="Notes" class="form-control" rows="3"
+                              placeholder="Any observations during vitals recording..."></textarea>
+                    <span asp-validation-for="Notes" class="text-danger small"></span>
+                </div>
+
+                <!-- Pre-Examination Notes -->
+                <div class="col-md-6">
+                    <label asp-for="PreExamNotes" class="form-label fw-medium"></label>
+                    <textarea asp-for="PreExamNotes" class="form-control" rows="3"
+                              placeholder="Notes for the doctor before examination..."></textarea>
+                    <span asp-validation-for="PreExamNotes" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary px-4 fw-semibold">
+                    <i class="bi bi-check-circle me-2"></i>Save Vitals
+                </button>
+                <a asp-controller="Appointments" asp-action="Details"
+                   asp-route-id="@Model.AppointmentId"
+                   class="btn btn-outline-secondary px-4">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

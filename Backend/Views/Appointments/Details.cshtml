@@ -1,0 +1,264 @@
+@model ClinicManagementSystem.Models.Appointment
+@{
+    ViewData["Title"] = "Appointment Details";
+    var canEditStatus  = User.IsInRole("Doctor");
+    var canAddVitals   = User.IsInRole("Nurse") && Model.Vitals == null
+                         && Model.Status != ClinicManagementSystem.Models.AppointmentStatus.Cancelled;
+    var isActive       = Model.Status != ClinicManagementSystem.Models.AppointmentStatus.Completed
+                         && Model.Status != ClinicManagementSystem.Models.AppointmentStatus.Cancelled;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1 fw-bold">
+            <i class="bi bi-calendar-event me-2 text-primary"></i>Appointment Details
+        </h4>
+        <p class="text-muted mb-0 small">
+            Booked by @(Model.CreatedBy?.FullName ?? "System") on
+            @Model.CreatedAt.ToString("MMM dd, yyyy")
+        </p>
+    </div>
+    <div class="d-flex gap-2">
+        @if (User.IsInRole("Receptionist") && isActive)
+        {
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-secondary">
+                <i class="bi bi-pencil me-1"></i>Edit
+            </a>
+        }
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Back
+        </a>
+    </div>
+</div>
+
+<div class="row g-3">
+
+    <!-- Left column — appointment info + vitals + clinical notes -->
+    <div class="col-lg-8">
+
+        <!-- Appointment summary card -->
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-info-circle me-2 text-primary"></i>Appointment Summary</span>
+                @{
+                    var (cls, lbl) = Model.Status switch
+                    {
+                        ClinicManagementSystem.Models.AppointmentStatus.Scheduled  => ("badge-scheduled",  "Scheduled"),
+                        ClinicManagementSystem.Models.AppointmentStatus.InProgress => ("badge-inprogress", "In Progress"),
+                        ClinicManagementSystem.Models.AppointmentStatus.Completed  => ("badge-completed",  "Completed"),
+                        ClinicManagementSystem.Models.AppointmentStatus.Cancelled  => ("badge-cancelled",  "Cancelled"),
+                        _ => ("", Model.Status.ToString())
+                    };
+                }
+                <span class="status-badge @cls">@lbl</span>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <label class="form-label text-muted small mb-1">Patient</label>
+                        <div class="fw-semibold">
+                            <a asp-controller="Patients" asp-action="Details"
+                               asp-route-id="@Model.PatientId"
+                               class="text-decoration-none">
+                                @Model.Patient.FullName
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label text-muted small mb-1">Doctor</label>
+                        <div class="fw-semibold">@Model.Doctor.FullName</div>
+                        <small class="text-muted">@Model.Doctor.Specialization</small>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label text-muted small mb-1">Date & Time</label>
+                        <div class="fw-semibold">
+                            @Model.AppointmentDate.ToString("MMMM dd, yyyy")
+                        </div>
+                        <small class="text-muted">@Model.AppointmentDate.ToString("hh:mm tt")</small>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label text-muted small mb-1">Reason for Visit</label>
+                        <div>@Model.ReasonForVisit</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vitals card -->
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-heart-pulse me-2 text-danger"></i>Vitals</span>
+                @if (canAddVitals)
+                {
+                    <a asp-controller="Vitals" asp-action="Create"
+                       asp-route-appointmentId="@Model.Id"
+                       class="btn btn-sm btn-primary">
+                        <i class="bi bi-plus-lg me-1"></i>Record Vitals
+                    </a>
+                }
+            </div>
+            <div class="card-body">
+                @if (Model.Vitals == null)
+                {
+                    <div class="text-center py-3 text-muted">
+                        <i class="bi bi-heart-pulse fs-2 d-block mb-2 opacity-25"></i>
+                        <span class="small">Vitals not yet recorded.</span>
+                    </div>
+                }
+                else
+                {
+                    var v = Model.Vitals;
+                    <div class="row g-3">
+                        <div class="col-6 col-md-4">
+                            <div class="p-3 bg-light rounded-3 text-center">
+                                <div class="fs-5 fw-bold text-danger">@(v.BloodPressure ?? "—")</div>
+                                <div class="text-muted small">Blood Pressure</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="p-3 bg-light rounded-3 text-center">
+                                <div class="fs-5 fw-bold text-danger">
+                                    @(v.HeartRate.HasValue ? $"{v.HeartRate} bpm" : "—")
+                                </div>
+                                <div class="text-muted small">Heart Rate</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="p-3 bg-light rounded-3 text-center">
+                                <div class="fs-5 fw-bold text-danger">
+                                    @(v.Temperature.HasValue ? $"{v.Temperature}°C" : "—")
+                                </div>
+                                <div class="text-muted small">Temperature</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="p-3 bg-light rounded-3 text-center">
+                                <div class="fs-5 fw-bold text-primary">
+                                    @(v.Weight.HasValue ? $"{v.Weight} kg" : "—")
+                                </div>
+                                <div class="text-muted small">Weight</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="p-3 bg-light rounded-3 text-center">
+                                <div class="fs-5 fw-bold text-primary">
+                                    @(v.Height.HasValue ? $"{v.Height} cm" : "—")
+                                </div>
+                                <div class="text-muted small">Height</div>
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(v.Notes))
+                        {
+                            <div class="col-12">
+                                <label class="form-label text-muted small mb-1">Nurse Notes</label>
+                                <div class="p-3 bg-light rounded-3">@v.Notes</div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Clinical notes card — diagnosis & prescription -->
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-file-medical me-2 text-primary"></i>Clinical Notes
+            </div>
+            <div class="card-body">
+                @if (!string.IsNullOrEmpty(Model.NurseNotes))
+                {
+                    <div class="mb-3">
+                        <label class="form-label text-muted small mb-1">Nurse Notes</label>
+                        <div class="p-3 bg-light rounded-3">@Model.NurseNotes</div>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(Model.Diagnosis))
+                {
+                    <div class="mb-3">
+                        <label class="form-label text-muted small mb-1">Diagnosis</label>
+                        <div class="p-3 bg-light rounded-3">@Model.Diagnosis</div>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(Model.Prescription))
+                {
+                    <div>
+                        <label class="form-label text-muted small mb-1">Prescription</label>
+                        <div class="p-3 bg-light rounded-3">@Model.Prescription</div>
+                    </div>
+                }
+                @if (string.IsNullOrEmpty(Model.Diagnosis) && string.IsNullOrEmpty(Model.Prescription)
+                     && string.IsNullOrEmpty(Model.NurseNotes))
+                {
+                    <div class="text-center py-3 text-muted">
+                        <i class="bi bi-file-medical fs-2 d-block mb-2 opacity-25"></i>
+                        <span class="small">No clinical notes recorded yet.</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Right column — Doctor action panel -->
+    <div class="col-lg-4">
+
+        @if (canEditStatus && isActive)
+        {
+            <div class="card mb-3 border-primary border-opacity-25">
+                <div class="card-header bg-primary bg-opacity-10">
+                    <i class="bi bi-stethoscope me-2 text-primary"></i>
+                    <span class="fw-semibold text-primary">Doctor Actions</span>
+                </div>
+                <div class="card-body">
+                    <form asp-action="UpdateStatus" asp-route-id="@Model.Id" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3">
+                            <label class="form-label fw-medium small">Update Status</label>
+                            <select name="status" class="form-select form-select-sm">
+                                @foreach (var s in Enum.GetValues<ClinicManagementSystem.Models.AppointmentStatus>())
+                                {
+                                    <option value="@s" selected="@(Model.Status == s)">@s</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-medium small">Diagnosis</label>
+                            <textarea name="diagnosis" class="form-control form-control-sm"
+                                      rows="3" placeholder="Enter diagnosis...">@Model.Diagnosis</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-medium small">Prescription</label>
+                            <textarea name="prescription" class="form-control form-control-sm"
+                                      rows="3" placeholder="Enter prescription...">@Model.Prescription</textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 btn-sm fw-semibold">
+                            <i class="bi bi-save me-2"></i>Save Clinical Notes
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+
+        <!-- Receptionist cancel panel -->
+        @if (User.IsInRole("Receptionist") && isActive)
+        {
+            <div class="card border-danger border-opacity-25">
+                <div class="card-body text-center py-3">
+                    <p class="text-muted small mb-3">
+                        Need to cancel this appointment?
+                    </p>
+                    <form asp-action="Cancel" asp-route-id="@Model.Id" method="post"
+                          onsubmit="return confirm('Cancel this appointment?')">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-outline-danger btn-sm px-4">
+                            <i class="bi bi-x-circle me-1"></i>Cancel Appointment
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+</div>

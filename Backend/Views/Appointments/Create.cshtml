@@ -1,0 +1,68 @@
+@model ClinicManagementSystem.ViewModels.Appointments.AppointmentFormViewModel
+@{
+    ViewData["Title"] = "Book Appointment";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1 fw-bold">
+            <i class="bi bi-calendar-plus me-2 text-primary"></i>Book Appointment
+        </h4>
+        <p class="text-muted mb-0 small">Schedule a new patient appointment</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Back
+    </a>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+
+            <div asp-validation-summary="All" class="alert alert-danger py-2 small"
+                 style="display:@(ViewContext.ModelState.IsValid ? "none" : "block")"></div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="PatientId" class="form-label fw-medium"></label>
+                    <select asp-for="PatientId" asp-items="Model.Patients" class="form-select">
+                        <option value="">— Select Patient —</option>
+                    </select>
+                    <span asp-validation-for="PatientId" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="DoctorId" class="form-label fw-medium"></label>
+                    <select asp-for="DoctorId" asp-items="Model.Doctors" class="form-select">
+                        <option value="">— Select Doctor —</option>
+                    </select>
+                    <span asp-validation-for="DoctorId" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="AppointmentDate" class="form-label fw-medium"></label>
+                    <input asp-for="AppointmentDate" type="datetime-local" class="form-control"
+                           min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
+                    <span asp-validation-for="AppointmentDate" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12">
+                    <label asp-for="ReasonForVisit" class="form-label fw-medium"></label>
+                    <textarea asp-for="ReasonForVisit" class="form-control" rows="3"
+                              placeholder="Describe the reason for this visit..."></textarea>
+                    <span asp-validation-for="ReasonForVisit" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary px-4 fw-semibold">
+                    <i class="bi bi-calendar-check me-2"></i>Book Appointment
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary px-4">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

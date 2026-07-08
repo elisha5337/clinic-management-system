@@ -1,0 +1,100 @@
+@model ClinicManagementSystem.ViewModels.Doctors.DoctorFormViewModel
+@{
+    ViewData["Title"] = "Add Doctor";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1 fw-bold">
+            <i class="bi bi-person-plus me-2 text-primary"></i>Add New Doctor
+        </h4>
+        <p class="text-muted mb-0 small">Register a new doctor on the system</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Back
+    </a>
+</div>
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+
+    <div asp-validation-summary="All" class="alert alert-danger py-2 small"
+         style="display:@(ViewContext.ModelState.IsValid ? "none" : "block")"></div>
+
+    <!-- Doctor details -->
+    <div class="card shadow-sm border-0 mb-3">
+        <div class="card-header">
+            <i class="bi bi-person-badge me-2 text-primary"></i>Doctor Information
+        </div>
+        <div class="card-body p-4">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="FullName" class="form-label fw-medium"></label>
+                    <input asp-for="FullName" class="form-control" placeholder="Dr. Full Name" />
+                    <span asp-validation-for="FullName" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Specialization" class="form-label fw-medium"></label>
+                    <input asp-for="Specialization" class="form-control"
+                           list="specializationList" placeholder="e.g. General Practice" />
+                    <datalist id="specializationList">
+                        @foreach (var s in ClinicManagementSystem.ViewModels.Doctors.DoctorFormViewModel.Specializations)
+                        {
+                            <option value="@s"></option>
+                        }
+                    </datalist>
+                    <span asp-validation-for="Specialization" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Phone" class="form-label fw-medium"></label>
+                    <input asp-for="Phone" class="form-control" placeholder="555-0000" />
+                    <span asp-validation-for="Phone" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Email" class="form-label fw-medium"></label>
+                    <input asp-for="Email" class="form-control" placeholder="doctor@clinic.com" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+                <div class="col-12">
+                    <div class="form-check form-switch">
+                        <input asp-for="IsAvailable" class="form-check-input" role="switch" />
+                        <label asp-for="IsAvailable" class="form-check-label fw-medium"></label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Optional login account -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header">
+            <i class="bi bi-key me-2 text-primary"></i>Login Account
+            <span class="text-muted small fw-normal ms-2">(optional — allows doctor to log in)</span>
+        </div>
+        <div class="card-body p-4">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="AccountEmail" class="form-label fw-medium"></label>
+                    <input asp-for="AccountEmail" class="form-control"
+                           placeholder="doctor@clinic.com" />
+                    <span asp-validation-for="AccountEmail" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="AccountPassword" class="form-label fw-medium"></label>
+                    <input asp-for="AccountPassword" class="form-control"
+                           placeholder="Min. 8 characters" />
+                    <span asp-validation-for="AccountPassword" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary px-4 fw-semibold">
+            <i class="bi bi-check-lg me-2"></i>Add Doctor
+        </button>
+        <a asp-action="Index" class="btn btn-outline-secondary px-4">Cancel</a>
+    </div>
+</form>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

@@ -1,0 +1,175 @@
+@model IEnumerable<ClinicManagementSystem.Models.Patient>
+@{
+    ViewData["Title"] = "Patients";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1 fw-bold">
+            <i class="bi bi-people me-2 text-primary"></i>Patients
+        </h4>
+        <p class="text-muted mb-0 small">@Model.Count() active patient records</p>
+    </div>
+    @if (User.IsInRole("Receptionist"))
+    {
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-person-plus me-2"></i>Register Patient
+        </a>
+    }
+</div>
+
+<!-- Search bar -->
+<div class="card mb-3 border-0 shadow-sm">
+    <div class="card-body py-2">
+        <form method="get" asp-action="Index" class="d-flex gap-2">
+            <div class="input-group">
+                <span class="input-group-text bg-light">
+                    <i class="bi bi-search text-muted"></i>
+                </span>
+                <input type="text" name="search" value="@ViewData["Search"]"
+                       class="form-control" placeholder="Search by name, phone or email..." />
+            </div>
+            <button type="submit" class="btn btn-primary px-3">Search</button>
+            @if (!string.IsNullOrEmpty(ViewData["Search"]?.ToString()))
+            {
+                <a asp-action="Index" class="btn btn-outline-secondary px-3">Clear</a>
+            }
+        </form>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="card">
+    <div class="card-body p-0">
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-person-x fs-1 d-block mb-2"></i>
+                @if (!string.IsNullOrEmpty(ViewData["Search"]?.ToString()))
+                {
+                    <span>No patients found matching "<strong>@ViewData["Search"]</strong>"</span>
+                }
+                else
+                {
+                    <span>No patients registered yet.</span>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Patient</th>
+                            <th>Age / Gender</th>
+                            <th>Phone</th>
+                            <th>Blood Type</th>
+                            <th>Registered</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center
+                                                    justify-content-center text-primary fw-bold"
+                                             style="width:36px;height:36px;font-size:0.85rem;flex-shrink:0">
+                                            @p.FullName[0]
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold">@p.FullName</div>
+                                            <small class="text-muted">@(p.Email ?? "—")</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>@p.Age yrs</div>
+                                    <small class="text-muted">@p.Gender</small>
+                                </td>
+                                <td>@p.Phone</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(p.BloodType))
+                                    {
+                                        <span class="badge bg-danger bg-opacity-10 text-danger fw-semibold px-2">
+                                            @p.BloodType
+                                        </span>
+                                    }
+                                    else { <span class="text-muted">—</span> }
+                                </td>
+                                <td>
+                                    <small>@p.CreatedAt.ToString("MMM dd, yyyy")</small>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        <a asp-action="Details" asp-route-id="@p.Id"
+                                           class="btn btn-sm btn-outline-primary" title="View">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        @if (User.IsInRole("Receptionist"))
+                                        {
+                                            <a asp-action="Edit" asp-route-id="@p.Id"
+                                               class="btn btn-sm btn-outline-secondary" title="Edit">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    title="Delete"
+                                                    onclick="confirmDelete(@p.Id, '@p.FullName')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Delete confirmation modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title text-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Confirm Removal
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to remove <strong id="deletePatientName"></strong>?</p>
+                <p class="text-muted small mb-0">
+                    This will deactivate the patient record. Appointment history is preserved.
+                </p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    Cancel
+                </button>
+                <form id="deleteForm" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i>Remove Patient
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function confirmDelete(id, name) {
+        document.getElementById('deletePatientName').textContent = name;
+        document.getElementById('deleteForm').action = `/Patients/Delete/${id}`;
+        new bootstrap.Modal(document.getElementById('deleteModal')).show();
+    }
+</script>
+}

@@ -1,0 +1,73 @@
+@model ClinicManagementSystem.ViewModels.Doctors.DoctorFormViewModel
+@{
+    ViewData["Title"] = "Edit Doctor";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1 fw-bold">
+            <i class="bi bi-pencil me-2 text-primary"></i>Edit Doctor
+        </h4>
+        <p class="text-muted mb-0 small">Update doctor information</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Back
+    </a>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+        <form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+
+            <div asp-validation-summary="All" class="alert alert-danger py-2 small"
+                 style="display:@(ViewContext.ModelState.IsValid ? "none" : "block")"></div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="FullName" class="form-label fw-medium"></label>
+                    <input asp-for="FullName" class="form-control" />
+                    <span asp-validation-for="FullName" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Specialization" class="form-label fw-medium"></label>
+                    <input asp-for="Specialization" class="form-control"
+                           list="specializationList" />
+                    <datalist id="specializationList">
+                        @foreach (var s in ClinicManagementSystem.ViewModels.Doctors.DoctorFormViewModel.Specializations)
+                        {
+                            <option value="@s"></option>
+                        }
+                    </datalist>
+                    <span asp-validation-for="Specialization" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Phone" class="form-label fw-medium"></label>
+                    <input asp-for="Phone" class="form-control" />
+                    <span asp-validation-for="Phone" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Email" class="form-label fw-medium"></label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+                <div class="col-12">
+                    <div class="form-check form-switch">
+                        <input asp-for="IsAvailable" class="form-check-input" role="switch" />
+                        <label asp-for="IsAvailable" class="form-check-label fw-medium"></label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary px-4 fw-semibold">
+                    <i class="bi bi-save me-2"></i>Save Changes
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary px-4">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

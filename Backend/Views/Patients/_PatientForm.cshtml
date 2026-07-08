@@ -1,0 +1,90 @@
+@model ClinicManagementSystem.ViewModels.Patients.PatientFormViewModel
+
+<div asp-validation-summary="All" class="alert alert-danger py-2 small"
+     style="display:@(ViewContext.ModelState.IsValid ? "none" : "block")"></div>
+
+<div class="row g-3">
+    <!-- Full Name -->
+    <div class="col-md-6">
+        <label asp-for="FullName" class="form-label fw-medium"></label>
+        <input asp-for="FullName" class="form-control" placeholder="e.g. John Martinez" />
+        <span asp-validation-for="FullName" class="text-danger small"></span>
+    </div>
+
+    <!-- Date of Birth -->
+    <div class="col-md-3">
+        <label asp-for="DateOfBirth" class="form-label fw-medium"></label>
+        <input asp-for="DateOfBirth" type="date" class="form-control" />
+        <span asp-validation-for="DateOfBirth" class="text-danger small"></span>
+    </div>
+
+    <!-- Gender -->
+    <div class="col-md-3">
+        <label asp-for="Gender" class="form-label fw-medium"></label>
+        <select asp-for="Gender" asp-items="Model.GenderOptions" class="form-select"></select>
+        <span asp-validation-for="Gender" class="text-danger small"></span>
+    </div>
+
+    <!-- Phone -->
+    <div class="col-md-4">
+        <label asp-for="Phone" class="form-label fw-medium"></label>
+        <div class="input-group">
+            <span class="input-group-text bg-light"><i class="bi bi-telephone text-muted"></i></span>
+            <input asp-for="Phone" class="form-control" placeholder="555-0000" />
+        </div>
+        <span asp-validation-for="Phone" class="text-danger small"></span>
+    </div>
+
+    <!-- Email -->
+    <div class="col-md-4">
+        <label asp-for="Email" class="form-label fw-medium"></label>
+        <div class="input-group">
+            <span class="input-group-text bg-light"><i class="bi bi-envelope text-muted"></i></span>
+            <input asp-for="Email" class="form-control" placeholder="patient@email.com" />
+        </div>
+        <span asp-validation-for="Email" class="text-danger small"></span>
+    </div>
+
+    <!-- Blood Type -->
+    <div class="col-md-4">
+        <label asp-for="BloodType" class="form-label fw-medium"></label>
+        <select asp-for="BloodType" class="form-select">
+            <option value="">— Unknown —</option>
+            @foreach (var item in Model.BloodTypeOptions)
+            {
+                <option value="@item.Value">@item.Text</option>
+            }
+        </select>
+        <span asp-validation-for="BloodType" class="text-danger small"></span>
+    </div>
+
+    <!-- Address -->
+    <div class="col-12">
+        <label asp-for="Address" class="form-label fw-medium"></label>
+        <input asp-for="Address" class="form-control" placeholder="Street, City" />
+        <span asp-validation-for="Address" class="text-danger small"></span>
+    </div>
+
+    <!-- Emergency Contact -->
+    <div class="col-12">
+        <div class="p-3 bg-light rounded-3">
+            <p class="fw-semibold small text-muted mb-2">
+                <i class="bi bi-person-exclamation me-1"></i>Emergency Contact
+            </p>
+            <div class="row g-2">
+                <div class="col-md-6">
+                    <label asp-for="EmergencyContactName" class="form-label fw-medium"></label>
+                    <input asp-for="EmergencyContactName" class="form-control"
+                           placeholder="Contact full name" />
+                    <span asp-validation-for="EmergencyContactName" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="EmergencyContactPhone" class="form-label fw-medium"></label>
+                    <input asp-for="EmergencyContactPhone" class="form-control"
+                           placeholder="555-0000" />
+                    <span asp-validation-for="EmergencyContactPhone" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

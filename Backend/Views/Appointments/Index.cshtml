@@ -1,0 +1,189 @@
+@model IEnumerable<ClinicManagementSystem.Models.Appointment>
+@{
+    ViewData["Title"] = "Appointments";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1 fw-bold">
+            <i class="bi bi-calendar3 me-2 text-primary"></i>Appointments
+        </h4>
+        <p class="text-muted mb-0 small">@Model.Count() appointments found</p>
+    </div>
+    @if (User.IsInRole("Receptionist"))
+    {
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-calendar-plus me-2"></i>Book Appointment
+        </a>
+    }
+</div>
+
+<!-- Filters -->
+<div class="card mb-3 border-0 shadow-sm">
+    <div class="card-body py-2">
+        <form method="get" asp-action="Index" class="row g-2 align-items-end">
+            <div class="col-sm-4 col-md-3">
+                <label class="form-label small fw-medium mb-1">Status</label>
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">All Statuses</option>
+                    @foreach (var s in Enum.GetNames<ClinicManagementSystem.Models.AppointmentStatus>())
+                    {
+                        <option value="@s" selected="@(ViewData["StatusFilter"]?.ToString() == s)">
+                            @s
+                        </option>
+                    }
+                </select>
+            </div>
+            <div class="col-sm-4 col-md-3">
+                <label class="form-label small fw-medium mb-1">Date</label>
+                <input type="date" name="date" class="form-control form-control-sm"
+                       value="@ViewData["DateFilter"]" />
+            </div>
+            @if (!User.IsInRole("Doctor"))
+            {
+                var doctorList = ViewData["DoctorList"] as Microsoft.AspNetCore.Mvc.Rendering.SelectList;
+                <div class="col-sm-4 col-md-3">
+                    <label class="form-label small fw-medium mb-1">Doctor</label>
+                    <select name="doctorId" asp-items="doctorList"
+                            class="form-select form-select-sm">
+                        <option value="">All Doctors</option>
+                    </select>
+                </div>
+            }
+            <div class="col-auto d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm px-3">
+                    <i class="bi bi-funnel me-1"></i>Filter
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary btn-sm px-3">Clear</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="card">
+    <div class="card-body p-0">
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-calendar-x fs-1 d-block mb-2"></i>
+                No appointments found.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Patient</th>
+                            <th>Doctor</th>
+                            <th>Date & Time</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var a in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <a asp-controller="Patients" asp-action="Details"
+                                       asp-route-id="@a.PatientId"
+                                       class="fw-semibold text-decoration-none">
+                                        @a.Patient.FullName
+                                    </a>
+                                </td>
+                                <td>@a.Doctor.FullName</td>
+                                <td>
+                                    <div>@a.AppointmentDate.ToString("MMM dd, yyyy")</div>
+                                    <small class="text-muted">@a.AppointmentDate.ToString("hh:mm tt")</small>
+                                </td>
+                                <td>
+                                    <span class="text-truncate d-inline-block" style="max-width:160px"
+                                          title="@a.ReasonForVisit">
+                                        @a.ReasonForVisit
+                                    </span>
+                                </td>
+                                <td>
+                                    @{
+                                        var (cls, lbl) = a.Status switch
+                                        {
+                                            ClinicManagementSystem.Models.AppointmentStatus.Scheduled  => ("badge-scheduled",  "Scheduled"),
+                                            ClinicManagementSystem.Models.AppointmentStatus.InProgress => ("badge-inprogress", "In Progress"),
+                                            ClinicManagementSystem.Models.AppointmentStatus.Completed  => ("badge-completed",  "Completed"),
+                                            ClinicManagementSystem.Models.AppointmentStatus.Cancelled  => ("badge-cancelled",  "Cancelled"),
+                                            _ => ("", a.Status.ToString())
+                                        };
+                                    }
+                                    <span class="status-badge @cls">@lbl</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        <a asp-action="Details" asp-route-id="@a.Id"
+                                           class="btn btn-sm btn-outline-primary" title="View">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        @if (User.IsInRole("Receptionist") &&
+                                             a.Status != ClinicManagementSystem.Models.AppointmentStatus.Completed &&
+                                             a.Status != ClinicManagementSystem.Models.AppointmentStatus.Cancelled)
+                                        {
+                                            <a asp-action="Edit" asp-route-id="@a.Id"
+                                               class="btn btn-sm btn-outline-secondary" title="Edit">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    onclick="confirmCancel(@a.Id)"
+                                                    title="Cancel">
+                                                <i class="bi bi-x-circle"></i>
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Cancel confirmation modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-danger">
+                    <i class="bi bi-x-circle me-2"></i>Cancel Appointment
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to cancel this appointment? This action cannot be undone.
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    Keep Appointment
+                </button>
+                <form id="cancelForm" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-x-circle me-1"></i>Cancel Appointment
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function confirmCancel(id) {
+        document.getElementById('cancelForm').action = `/Appointments/Cancel/${id}`;
+        new bootstrap.Modal(document.getElementById('cancelModal')).show();
+    }
+</script>
+}
